@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>music hub</title>
+  <style>
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  background: #000;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+/* ===== APP ===== */
+.app {
+  display: flex;
+  min-height: 100vh;
+  padding-bottom: 140px; /* ruang buat player */
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 220px;
+  padding: 20px;
+  background: #000;
+}
+
+.sidebar h2 {
+  margin-bottom: 20px;
+}
+
+.sidebar li {
+  list-style: none;
+  padding: 10px;
+  color: #aaa;
+  cursor: pointer;
+}
+
+.sidebar li.active,
+.sidebar li:hover {
+  color: #fff;
+}
+
+/* ===== MAIN ===== */
+.main {
+  flex: 1;
+  padding: 20px;
+  background: linear-gradient(#1e1e1e, #000);
+  overflow-y: auto;
+}
+
+/* ===== PAGE ===== */
+.page {
+  display: none;
+  animation: fade .25s ease;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes fade {
+  from {opacity: 0; transform: translateY(4px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+/* ===== CARDS ===== */
+.cards {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: #181818;
+  padding: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.25s;
+  position: relative;
+}
+
+.card img {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.card p {
+  font-size: 14px;
+}
+
+.card:hover {
+  background: #282828;
+  transform: translateY(-4px);
+}
+
+.card::after {
+  content: "▶";
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: #1db954;
+  color: #000;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: .2s;
+}
+
+.card:hover::after {
+  opacity: 1;
+}
+
+.card.active {
+  outline: 2px solid #1db954;
+}
+
+/* ===== PLAYER ===== */
+.player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #181818;
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+  gap: 10px;
+  z-index: 99;
+  border-top: 1px solid #222;
+}
+
+.player-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-left img {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.player-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.controls button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  margin: 0 4px;
+  cursor: pointer;
+}
+
+#play-btn {
+  font-size: 22px;
+  background: #1db954;
+  color: #000;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+}
+
+.progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.progress-wrap input {
+  flex: 1;
+}
+
+/* ===== PLAYER RIGHT ===== */
+.player-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ===== MOBILE NAV ===== */
+.mobile-nav {
+  margin-top: 28px;
+  width: 100%;
+  background: #000;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  border-top: 1px solid #222;
+}
+
+.mobile-nav div {
+  color: #aaa;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.mobile-nav div:hover {
+  color: #1db954;
+}
+
+/* ===== RANGE ===== */
+input[type="range"] {
+  cursor: pointer;
+}
+
+/* ===== MOBILE MODE ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+
+  .cards {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .player {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .player-left,
+  .player-right {
+    justify-content: center;
+  }
+
+  .player-right {
+    display: none;
+  }
+
+  .progress-wrap {
+    width: 100%;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- sidebar -->
+  <aside class="sidebar">
+    <h2>music hub</h2>
+    <ul>
+      <li class="active" onclick="showPage('homePage')">home</li>
+      <li onclick="showPage('searchPage')">search</li>
+      <li onclick="showPage('libraryPage')">library</li>
+    </ul>
+  </aside>
+
+  <!-- main -->
+  <main class="main">
+
+    <!-- HOME -->
+    <section id="homePage" class="page active">
+      <h3>dibuat untuk kamu</h3>
+      <div class="cards" id="cards"></div>
+
+      <!-- NAV DI BAWAH LAGU -->
+      <div class="mobile-nav">
+        <div onclick="showPage('homePage')">🏠 home</div>
+        <div onclick="showPage('searchPage')">🔍 search</div>
+        <div onclick="showPage('libraryPage')">📚 library</div>
+      </div>
+    </section>
+
+    <!-- SEARCH -->
+    <section id="searchPage" class="page">
+      <h3>cari</h3>
+      <input type="text" id="search2" placeholder="cari lagu / artist..." 
+        style="width:100%;padding:12px;border-radius:20px;border:none;margin-top:10px;">
+      <div id="searchResult" class="cards"></div>
+    </section>
+
+    <!-- LIBRARY -->
+    <section id="libraryPage" class="page">
+      <h3>koleksi kamu</h3>
+      <p style="margin-top:10px;color:#aaa">belum ada lagu disimpan.</p>
+    </section>
+
+  </main>
+</div>
+
+<!-- PLAYER (TETAP DI LUAR, FIXED DI BAWAH) -->
+<footer class="player">
+  <div class="player-left">
+    <img id="player-cover" src="assets/cover.jpg">
+    <div>
+      <div id="song-title">not playing</div>
+      <small>music hub</small>
+    </div>
+  </div>
+
+  <div class="player-center">
+    <div class="controls">
+      <button id="shuffle-btn">🔀</button>
+      <button onclick="prevSong()">⏮</button>
+      <button id="play-btn" onclick="togglePlay()">▶️</button>
+      <button onclick="nextSong()">⏭</button>
+      <button id="repeat-btn">🔁</button>
+    </div>
+
+    <div class="progress-wrap">
+      <span id="current-time">0:00</span>
+      <input type="range" id="progress" min="0" max="100">
+      <span id="duration">0:00</span>
+    </div>
+  </div>
+
+  <div class="player-right">
+    🔊
+    <input type="range" id="volume" min="0" max="1" step="0.01">
+  </div>
+</footer>
+
+<audio id="audio"></audio>
+<script src="script.js"></script>
+<script>
+/* ================== PLAYLIST ================== */
+const playlist = [
+  { src: "assets/song.mp3",  name: "daily mix", cover: "assets/cover.jpg" },
+  { src: "assets/song2.mp3", name: "chill vibes", cover: "assets/cover.jpg" },
+  { src: "assets/song3.mp3", name: "sad boi hours", cover: "assets/cover.jpg" }
+];
+
+/* ================== STATE ================== */
+let currentIndex = 0;
+let shuffle = false;
+let repeatMode = 0; // 0 off, 1 one, 2 all
+
+/* ================== ELEMENT ================== */
+const audio = document.getElementById("audio");
+const cards = document.getElementById("cards");
+const title = document.getElementById("song-title");
+const playBtn = document.getElementById("play-btn");
+const progress = document.getElementById("progress");
+const volume = document.getElementById("volume");
+const currentTimeEl = document.getElementById("current-time");
+const durationEl = document.getElementById("duration");
+const coverEl = document.getElementById("player-cover");
+
+const searchInput = document.getElementById("search2");
+const searchResult = document.getElementById("searchResult");
+
+/* ================== RENDER ================== */
+function render(list = playlist, target = cards) {
+  target.innerHTML = "";
+  list.forEach((s) => {
+    const realIndex = playlist.indexOf(s);
+
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `<img src="${s.cover}"><p>${s.name}</p>`;
+    div.onclick = () => playByIndex(realIndex);
+    target.appendChild(div);
+  });
+
+  updateActive();
+}
+
+render();
+
+/* ================== INIT ================== */
+audio.src = playlist[0].src;
+title.textContent = playlist[0].name;
+coverEl.src = playlist[0].cover;
+audio.pause();
+playBtn.textContent = "▶️";
+
+/* ================== SEARCH ================== */
+if(searchInput){
+  searchInput.addEventListener("input", e => {
+    const q = e.target.value.toLowerCase();
+    const result = playlist.filter(s => s.name.toLowerCase().includes(q));
+    render(result, searchResult);
+  });
+}
+
+/* ================== PLAYER ================== */
+function playByIndex(i) {
+  currentIndex = i;
+  audio.src = playlist[i].src;
+  coverEl.src = playlist[i].cover;
+  title.textContent = playlist[i].name;
+  audio.play();
+  updateActive();
+}
+
+function togglePlay() {
+  if (!audio.src) return playByIndex(currentIndex);
+  audio.paused ? audio.play() : audio.pause();
+}
+
+function nextSong() {
+  if (shuffle) {
+    let rand;
+    do { rand = Math.floor(Math.random() * playlist.length); }
+    while (rand === currentIndex);
+    currentIndex = rand;
+  } else {
+    currentIndex = (currentIndex + 1) % playlist.length;
+  }
+  playByIndex(currentIndex);
+}
+
+function prevSong() {
+  currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+  playByIndex(currentIndex);
+}
+
+/* ================== BUTTON ================== */
+document.getElementById("shuffle-btn").onclick = e => {
+  shuffle = !shuffle;
+  e.target.style.color = shuffle ? "#1db954" : "#fff";
+};
+
+document.getElementById("repeat-btn").onclick = e => {
+  repeatMode = (repeatMode + 1) % 3;
+  e.target.textContent =
+    repeatMode === 0 ? "🔁" :
+    repeatMode === 1 ? "🔂" : "🔃";
+};
+
+/* ================== AUDIO EVENT ================== */
+audio.addEventListener("play", () => playBtn.textContent = "⏸");
+audio.addEventListener("pause", () => playBtn.textContent = "▶️");
+
+audio.addEventListener("timeupdate", () => {
+  progress.value = (audio.currentTime / audio.duration) * 100 || 0;
+  currentTimeEl.textContent = format(audio.currentTime);
+});
+
+audio.addEventListener("loadedmetadata", () => {
+  durationEl.textContent = format(audio.duration);
+});
+
+audio.addEventListener("ended", () => {
+  if (repeatMode === 1) {
+    audio.currentTime = 0;
+    audio.play();
+  } else if (repeatMode === 2) {
+    nextSong();
+  } else if (currentIndex < playlist.length - 1) {
+    nextSong();
+  }
+});
+
+/* ================== PROGRESS ================== */
+progress.oninput = () => {
+  audio.currentTime = (progress.value / 100) * audio.duration;
+};
+
+/* ================== VOLUME ================== */
+audio.volume = localStorage.volume || 0.7;
+volume.value = audio.volume;
+
+volume.oninput = () => {
+  audio.volume = volume.value;
+  localStorage.volume = volume.value;
+};
+
+/* ================== PAGE ================== */
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+
+  document.querySelectorAll(".sidebar li").forEach(li=>li.classList.remove("active"));
+  document.querySelectorAll(".sidebar li").forEach(li=>{
+    if(li.textContent.toLowerCase().includes(id.replace("Page","").toLowerCase())){
+      li.classList.add("active");
+    }
+  });
+}
+
+/* ================== UI ================== */
+function updateActive() {
+  document.querySelectorAll(".card").forEach((c,i)=>{
+    c.classList.toggle("active", i === currentIndex);
+  });
+}
+
+function format(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60).toString().padStart(2,"0");
+  return `${m}:${s}`;
+}
+</script>
+</body>
+</html>
